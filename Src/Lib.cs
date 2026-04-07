@@ -907,6 +907,10 @@ namespace FFS.Libraries.StaticEcs {
             }
         }
 
+        internal static ComponentTypeConfig<T> FindComponentConfig<T>() where T : struct, IComponentOrTag {
+            return (ComponentTypeConfig<T>)FindComponentConfig(typeof(T));
+        }
+
         #if NET5_0_OR_GREATER
         [UnconditionalSuppressMessage("Trimming", "IL2055", Justification = "Config types are preserved by DynamicDependency on RegisterAll.")]
         [UnconditionalSuppressMessage("Trimming", "IL2060", Justification = "Registration methods are preserved by DynamicDependency on RegisterAll.")]
@@ -914,10 +918,19 @@ namespace FFS.Libraries.StaticEcs {
         [UnconditionalSuppressMessage("AOT", "IL3050", Justification = "Generic instantiations are pre-compiled because types are statically referenced in consuming code.")]
         #endif
         private static void InvokeRegisterComponent(MethodInfo openMethod, Type componentType) {
-            var configType = typeof(ComponentTypeConfig<>).MakeGenericType(componentType);
-            var config = FindStaticConfig(componentType, configType, "Config")
-                         ?? Activator.CreateInstance(configType);
+            var config = FindComponentConfig(componentType);
             openMethod.MakeGenericMethod(componentType).Invoke(null, new[] { config });
+        }
+
+        #if NET5_0_OR_GREATER
+        [UnconditionalSuppressMessage("Trimming", "IL2055", Justification = "Config types are preserved by DynamicDependency on RegisterAll.")]
+        [UnconditionalSuppressMessage("Trimming", "IL2060", Justification = "Registration methods are preserved by DynamicDependency on RegisterAll.")]
+        [UnconditionalSuppressMessage("Trimming", "IL2067", Justification = "Config types have public parameterless constructors preserved by DynamicDependency on RegisterAll.")]
+        [UnconditionalSuppressMessage("AOT", "IL3050", Justification = "Generic instantiations are pre-compiled because types are statically referenced in consuming code.")]
+        #endif
+        private static object FindComponentConfig(Type componentType) {
+            var configType = typeof(ComponentTypeConfig<>).MakeGenericType(componentType);
+            return FindStaticConfig(componentType, configType, "Config") ?? Activator.CreateInstance(configType);
         }
 
         #if NET5_0_OR_GREATER

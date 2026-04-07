@@ -1513,13 +1513,26 @@ namespace FFS.Libraries.StaticEcs {
             }
 
             /// <summary>
+            /// Registers a component type for use in this world, using built-in configuration.
+            /// </summary>
+            /// <typeparam name="T">Component type — must be a struct implementing <see cref="IComponent"/>.</typeparam>
+            /// <returns>This registrar for chaining.</returns>
+            [MethodImpl(AggressiveInlining)]
+            public TypeRegistrar Component<T>() where T : unmanaged, IComponent {
+                RegisterComponentType(new ComponentTypeConfig<T>(
+                    readWriteStrategy: new UnmanagedPackArrayStrategy<T>())
+                );
+                return this;
+            }
+
+            /// <summary>
             /// Registers a component type for use in this world.
             /// </summary>
             /// <typeparam name="T">Component type — must be a struct implementing <see cref="IComponent"/>.</typeparam>
             /// <param name="config">Optional configuration for this component type.</param>
             /// <returns>This registrar for chaining.</returns>
             [MethodImpl(AggressiveInlining)]
-            public TypeRegistrar Component<T>(ComponentTypeConfig<T> config = default) where T : struct, IComponent {
+            public TypeRegistrar Component<T>(ComponentTypeConfig<T> config) where T : struct, IComponent {
                 RegisterComponentType(config);
                 return this;
             }

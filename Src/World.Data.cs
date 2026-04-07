@@ -3273,14 +3273,16 @@ namespace FFS.Libraries.StaticEcs {
                     Array.Resize(ref _guidsComponents, _poolsCountComponents << 1);
                 }
 
+                typeConfig = typeConfig.MergeWith(AutoRegistration.FindComponentConfig<TComponent>())
+                                       .MergeWith(ComponentTypeConfig<TComponent>.Fallback);
                 Components<TComponent>.Instance = new Components<TComponent>(_poolsCountComponents, typeConfig, false);
                 Components<TComponent>.Handle = ComponentsHandle.Create<TWorld, TComponent>();
                 _poolsComponents[_poolsCountComponents] = Components<TComponent>.Handle;
-                _guidsComponents[_poolsCountComponents++] = typeConfig.Guid;
+                _guidsComponents[_poolsCountComponents++] = typeConfig.Guid.Value;
 
-                if (typeConfig.TrackAdded || typeConfig.TrackDeleted
+                if (typeConfig.TrackAdded.Value || typeConfig.TrackDeleted.Value
                     #if !FFS_ECS_DISABLE_CHANGED_TRACKING
-                    || typeConfig.TrackChanged
+                    || typeConfig.TrackChanged.Value
                     #endif
                     ) {
                     if (_trackingComponentIndicesCount == _trackingComponentIndices.Length) {
@@ -3289,7 +3291,7 @@ namespace FFS.Libraries.StaticEcs {
                     _trackingComponentIndices[_trackingComponentIndicesCount++] = (ushort)(_poolsCountComponents - 1);
                 }
 
-                var guid = typeConfig.Guid;
+                var guid = typeConfig.Guid.Value;
                 if (guid != Guid.Empty) {
                     if (_componentPoolByGuid.ContainsKey(guid)) throw new StaticEcsException($"Component type {typeof(TComponent)} with guid {guid} already registered");
                     _componentPoolByGuid[guid] = Components<TComponent>.Handle;
